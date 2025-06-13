@@ -3,15 +3,24 @@ import sublime_plugin
 import urllib.request
 import urllib.error
 import os 
+import tempfile
 
 class PrettierJetFormatCommand(sublime_plugin.TextCommand):
     def run(self, edit):
+        port_file = os.path.join(tempfile.gettempdir(), 'prettierjet.port')
+        try:
+            with open(port_file, 'r') as f:
+                port = f.read().strip()
+            url = f"http://localhost:{port}/"
+        except:
+            sublime.error_message("PrettierJet service not running!")
+            return
+
         region = sublime.Region(0, self.view.size())
         code = self.view.substr(region)
 
         file_path = self.view.file_name()
 
-        url = "http://localhost:5050/"
         headers = {
             "Content-Type": "text/plain",
             "x-file-path": file_path

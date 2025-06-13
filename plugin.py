@@ -4,7 +4,7 @@ import shutil
 import platform
 import threading  
 
-
+   
 service_process = None
 
 
@@ -107,8 +107,8 @@ def stop_service():
         print("[PrettierJet] Service is not running.")
    
 
+  
  
-
 def plugin_loaded():
     start_service()  
 

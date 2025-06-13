@@ -1,6 +1,11 @@
+import { writeFileSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
 import findPrettier from "./findPrettier.js";
-import { MAX_TXT_SIZE, PORT, PRETTIER_SUPPORTED_EXTS } from "./constants.js";
+import {
+  MAX_TXT_SIZE,
+  PORT_FILE_PATH,
+  PRETTIER_SUPPORTED_EXTS,
+} from "./constants.js";
 
 const prettierPath = findPrettier();
 if (!prettierPath) {
@@ -83,6 +88,23 @@ const server = createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () =>
-  console.log(`PrettierJet service running on port ${PORT}`),
-);
+// Delete old file if exists (cleanup)
+try {
+  rmSync(PORT_FILE_PATH);
+} catch {}
+
+// Let OS choose a free port
+server.listen(0, () => {
+  const port = server.address().port;
+  writeFileSync(PORT_FILE_PATH, port.toString(), { mode: 0o600 }); // Secure permissions (owner-only)
+  console.log(
+    `PrettierJet running on port ${port} (port file: ${PORT_FILE_PATH})`,
+  );
+});
+
+// Cleanup on exit
+process.on("exit", () => {
+  try {
+    rmSync(PORT_FILE_PATH);
+  } catch {}
+});

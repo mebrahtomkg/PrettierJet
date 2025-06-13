@@ -1,0 +1,9 @@
+{
+  "name": "prettier-jet-service",
+  "version": "1.0.0",
+  "description": "Server to format code via prettier",
+  "main": "index.js",
+  "type": "module",
+  "author": "Mebrahtom Kidane",
+  "license": "MIT"
+}

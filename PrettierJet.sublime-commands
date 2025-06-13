@@ -1,0 +1,6 @@
+[
+  {
+    "caption": "PrettierJet: Format Document",
+    "command": "prettier_jet_format"
+  }
+]

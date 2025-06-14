@@ -1,1 +1,3 @@
-/tests/
+/source.test.js
+/biome.json
+/.prettierrc

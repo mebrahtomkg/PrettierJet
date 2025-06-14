@@ -1,0 +1,12 @@
+{
+  "name": "PrettierJet",
+  "version": "1.0.0",
+  "sublime_text": "*",
+  "platforms": ["*"],
+  "python_version": "3.8",
+  "url": "https://github.com/mebrahtomkg/PrettierJet",
+  "issues": "https://github.com/mebrahtomkg/PrettierJet/issues",
+  "author": ["Mebrahtom Kidane"],
+  "description": "Prettier Formatter Plugin for Sublime Text",
+  "labels": ["prettier"]
+}

@@ -1,110 +1,57 @@
-import { writeFileSync, rmSync } from "node:fs";
-import { createServer } from "node:http";
-import findPrettier from "./findPrettier.js";
-import {
-  MAX_TXT_SIZE,
-  PORT_FILE_PATH,
-  PRETTIER_SUPPORTED_EXTS,
-} from "./constants.js";
+import { writeFileSync, rmSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { PORT_FILE_PATH } from './constants.js';
+import isSublimeRunning from './isSublimeRunning.js';
+import handleFormatRequest from './handleFormatRequest.js';
 
-const prettierPath = findPrettier();
-if (!prettierPath) {
-  console.error("Prettier installation not found!");
-  process.exit(1);
-}
+let monitorInterval;
+const server = createServer(handleFormatRequest);
 
-const prettier = (await import(prettierPath)).default;
-
-const server = createServer(async (req, res) => {
-  if (req.method !== "POST" || req.url !== "/") {
-    return res.writeHead(404).end();
-  }
-
-  req.on("error", (err) => {
-    res.writeHead(400, {
-      "Content-Type": "text/plain",
-      Connection: "close",
-    });
-    res.end(`Request Error: ${err.toString()}  ${err.stack}`);
-  });
-
-  let body = "";
-  let size = 0;
-
-  req.on("data", (chunk) => {
-    size += chunk.length;
-    if (size > MAX_TXT_SIZE) {
-      console.log("Cannot format too big file!");
-      return req.destroy();
-    }
-
-    body += chunk;
-  });
-
-  req.on("end", async () => {
-    try {
-      const filepath = req.headers["x-file-path"];
-
-      if (!filepath) return res.writeHead(403).end("Missing file path");
-
-      // Normalize path (replace `\` with `/`)
-      const normalizedPath = filepath.replace(/\\/g, "/");
-
-      if (normalizedPath.split("/").includes("..")) {
-        return res.writeHead(403).end("File Path cannot contain `../`");
-      }
-
-      const ext = filepath
-        .toLowerCase()
-        .slice(
-          Math.max(0, filepath.lastIndexOf(".")) || Number.POSITIVE_INFINITY,
-        );
-
-      if (!ext || !PRETTIER_SUPPORTED_EXTS.includes(ext)) {
-        return res
-          .writeHead(403)
-          .end(`Unsupported file type: ${ext || "no extension"}`);
-      }
-
-      const options = await prettier.resolveConfig(filepath);
-
-      const formattedText = await prettier.format(body, {
-        ...options,
-        filepath,
-      });
-
-      res.writeHead(200, {
-        "Content-Type": "text/plain",
-        Connection: "close",
-      });
-      res.end(formattedText);
-    } catch (err) {
-      res.writeHead(500, {
-        "Content-Type": "text/plain",
-        Connection: "close",
-      });
-      res.end(`Prettier Error: ${err.toString()}  ${err.stack}`);
-    }
-  });
-});
-
-// Delete old file if exists (cleanup)
-try {
-  rmSync(PORT_FILE_PATH);
-} catch {}
-
-// Let OS choose a free port
-server.listen(0, () => {
-  const port = server.address().port;
-  writeFileSync(PORT_FILE_PATH, port.toString(), { mode: 0o600 }); // Secure permissions (owner-only)
-  console.log(
-    `PrettierJet running on port ${port} (port file: ${PORT_FILE_PATH})`,
-  );
-});
-
-// Cleanup on exit
-process.on("exit", () => {
+// Deletes port file if exists.
+const removePortFile = () => {
   try {
     rmSync(PORT_FILE_PATH);
   } catch {}
+};
+
+const cleanShutdown = () => {
+  clearInterval(monitorInterval);
+  server.close();
+  removePortFile();
+  process.exit(0);
+};
+
+const shutdownIfSublimeClosed = async () => {
+  try {
+    const running = await isSublimeRunning();
+    if (!running) {
+      console.log('Sublime Text not running - shutting down...');
+      cleanShutdown();
+    }
+  } catch (error) {
+    console.error('Error checking Sublime status:', error);
+  }
+};
+
+// Let OS choose a free port
+server.listen(0, (err) => {
+  if (err) {
+    console.error('PrettierJet server failed to start:', err);
+    return cleanShutdown();
+  }
+
+  removePortFile();
+
+  const port = server.address().port;
+  const mode = 0o600; // Secure permissions (owner-only)
+  writeFileSync(PORT_FILE_PATH, port.toString(), { mode });
+  console.log(`PrettierJet running on port ${port}`);
+
+  // Start monitoring Sublime's status
+  monitorInterval = setInterval(shutdownIfSublimeClosed, 60000); // Check every minute
 });
+
+// Handle process termination
+process.on('exit', cleanShutdown);
+process.on('SIGINT', cleanShutdown);
+process.on('SIGTERM', cleanShutdown);

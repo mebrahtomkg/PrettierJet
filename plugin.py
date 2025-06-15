@@ -3,7 +3,7 @@ import subprocess
 import shutil
 import platform   
 import threading  
-      
+       
     
 service_process = None
 
@@ -12,8 +12,8 @@ def find_node_executable():
     """Finds the Node.js executable in a cross-platform manner."""
     # First, try to find Node.js in the system's PATH
     node_binary = shutil.which("node")
-    if node_binary:
-        return node_binary
+    if node_binary: 
+        return node_binary    
 
     # If not found, check known default paths based on OS
     possible_paths = []
@@ -105,7 +105,7 @@ def stop_service():
             print(f"[PrettierJet] Error stopping service: {str(e)}")
     else:
         print("[PrettierJet] Service is not running.")
-   
+    
 
       
  

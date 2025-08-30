@@ -2,14 +2,15 @@ import sublime
 import sublime_plugin
 import urllib.request
 import urllib.error
-import os 
+import os
 import tempfile
+
 
 class PrettierJetFormatCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        port_file = os.path.join(tempfile.gettempdir(), 'prettierjet.port')
+        port_file = os.path.join(tempfile.gettempdir(), "prettierjet.port")
         try:
-            with open(port_file, 'r') as f:
+            with open(port_file, "r") as f:
                 port = f.read().strip()
             url = f"http://localhost:{port}/"
         except:
@@ -21,17 +22,11 @@ class PrettierJetFormatCommand(sublime_plugin.TextCommand):
 
         file_path = self.view.file_name()
 
-        headers = {
-            "Content-Type": "text/plain",
-            "x-file-path": file_path
-        }
+        headers = {"Content-Type": "text/plain", "x-file-path": file_path}
 
         try:
             req = urllib.request.Request(
-                url,
-                data=code.encode("utf-8"),
-                headers=headers,
-                method="POST"
+                url, data=code.encode("utf-8"), headers=headers, method="POST"
             )
             with urllib.request.urlopen(req, timeout=5) as response:
                 if response.status == 200:

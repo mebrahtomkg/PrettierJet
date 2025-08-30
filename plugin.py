@@ -1,19 +1,17 @@
 import os
 import subprocess
 import shutil
-import platform   
-import threading  
-       
-    
-service_process = None
+import platform
+import threading
 
+service_process = None
 
 def find_node_executable():
     """Finds the Node.js executable in a cross-platform manner."""
     # First, try to find Node.js in the system's PATH
     node_binary = shutil.which("node")
-    if node_binary: 
-        return node_binary    
+    if node_binary:
+        return node_binary
 
     # If not found, check known default paths based on OS
     possible_paths = []
@@ -42,17 +40,14 @@ def find_node_executable():
     # If still not found, return None
     return None
 
-
 def capture_subprocess_output(pipe, prefix):
     """Capture output from subprocess and print to Sublime console"""
     for line in iter(pipe.readline, ''):
         print(f"[Prettier {prefix}] {line.strip()}")
-    pipe.close() 
-
-
+    pipe.close()
 
 def start_service():
-    global service_process            
+    global service_process
 
     if service_process is not None:
         print("[PrettierJet] Service is already running.")
@@ -90,7 +85,7 @@ def start_service():
         print("[PrettierJet] Service started successfully.")
     except Exception as e:
         print("[PrettierJet] Failed to start service: {}".format(str(e)))
-        service_process = None       
+        service_process = None
 
 
 
@@ -101,19 +96,13 @@ def stop_service():
             service_process.terminate()
             service_process = None
             print("[PrettierJet] Service stopped successfully.")
-        except Exception as e: 
+        except Exception as e:
             print(f"[PrettierJet] Error stopping service: {str(e)}")
     else:
         print("[PrettierJet] Service is not running.")
-    
 
-      
- 
 def plugin_loaded():
-    start_service()  
+    start_service()
 
-
-       
-def plugin_unloaded():        
-    stop_service()           
-                
+def plugin_unloaded():
+    stop_service()

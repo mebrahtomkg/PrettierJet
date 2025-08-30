@@ -1,0 +1,7 @@
+{
+    // Enable or disable formatting on file save.
+    // When true, files with supported extensions will be automatically formatted
+    // by PrettierJet before they are saved.
+    // Default: false
+    "format_on_save": false
+}

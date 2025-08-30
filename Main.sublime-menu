@@ -9,6 +9,14 @@
                         "caption": "PrettierJet",
                         "children": [
                             {
+                                "caption": "Settings",
+                                "command": "edit_settings",
+                                "args": {
+                                    "base_file": "${packages}/PrettierJet/PrettierJet.sublime-settings",
+                                    "default": "// PrettierJet Settings - User\n{\n\t$0\n}\n",
+                                }
+                            },
+                            {
                                 "caption": "Key Bindings",
                                 "command": "edit_settings",
                                 "args": {
